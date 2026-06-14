@@ -1,0 +1,36 @@
+name: control-base-checkout
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  control:
+    if: "github.event.label.name == 'tests: run'"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout base code only
+        uses: actions/checkout@v4
+
+      - name: Check privileged context
+        env:
+          DUMMY_SECRET: ${{ secrets.DUMMY_SECRET }}
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "checkout_source=base_repository"
+          if [ -n "$DUMMY_SECRET" ]; then
+            echo "dummy_secret_visible=true"
+          else
+            echo "dummy_secret_visible=false"
+          fi
+
+      - name: Run base tests only
+        env:
+          DUMMY_SECRET: ${{ secrets.DUMMY_SECRET }}
+        run: |
+          go test -v ./...
