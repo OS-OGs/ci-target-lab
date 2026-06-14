@@ -1,1 +1,1 @@
-commit_marker=C1_before_label
+commit_marker=C2_after_label
