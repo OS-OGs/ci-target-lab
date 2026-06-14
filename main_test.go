@@ -1,7 +1,16 @@
 package main
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
-func TestBaseRepoCode(t *testing.T) {
-	t.Log("base_repo_test_executed=true")
+func TestPrivilegedContextReached(t *testing.T) {
+	t.Log("pr_controlled_test_executed=true")
+
+	if os.Getenv("DUMMY_SECRET") != "" {
+		t.Log("dummy_secret_visible_to_pr_controlled_test=true")
+	} else {
+		t.Log("dummy_secret_visible_to_pr_controlled_test=false")
+	}
 }
