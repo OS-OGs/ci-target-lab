@@ -1,0 +1,31 @@
+name: control-head-sha-pinning
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  control:
+    if: "github.event.label.name == 'tests: run'"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Print event SHA before delay
+        run: |
+          echo "event_head_sha=${{ github.event.pull_request.head.sha }}"
+          echo "sleeping_before_checkout=true"
+          sleep 120
+
+      - name: Checkout event-time PR head SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Print checked out commit marker
+        run: |
+          echo "checked_out_commit=$(git rev-parse HEAD)"
+          cat commit-marker.txt
