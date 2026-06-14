@@ -1,0 +1,29 @@
+name: control-pull-request
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  control:
+    if: "github.event.label.name == 'tests: run'"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+
+      - name: Run PR-controlled tests without privileged secret exposure
+        env:
+          DUMMY_SECRET: ${{ secrets.DUMMY_SECRET }}
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          if [ -n "$DUMMY_SECRET" ]; then
+            echo "dummy_secret_visible=true"
+          else
+            echo "dummy_secret_visible=false"
+          fi
+          go test -v ./...
