@@ -1,0 +1,45 @@
+name: lab-tests
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  integration:
+    if: ${{ github.event.label.name == 'tests: run' }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Print event context
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "label_name=${{ github.event.label.name }}"
+          echo "pr_head_repo=${{ github.event.pull_request.head.repo.full_name }}"
+          echo "pr_head_sha=${{ github.event.pull_request.head.sha }}"
+
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Simulate privileged context
+        env:
+          DUMMY_SECRET: ${{ secrets.DUMMY_SECRET }}
+        run: |
+          echo "privileged_context_reached=true"
+          if [ -n "$DUMMY_SECRET" ]; then
+            echo "dummy_secret_visible=true"
+          else
+            echo "dummy_secret_visible=false"
+          fi
+
+      - name: Run PR-controlled tests
+        env:
+          DUMMY_SECRET: ${{ secrets.DUMMY_SECRET }}
+        run: |
+          go test -v ./...
